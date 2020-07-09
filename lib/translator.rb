@@ -1,23 +1,39 @@
-require 'yaml'
+# require modules hereemo
+require "yaml"
 
-def load_library(filepath)
-  emoji_dictionary = File.open(filepath) { |file| YAML.load(file) }
-  resorted_dictionary ={}
-  resorted_dictionary["get_meaning"]={}
-  resorted_dictionary["get_emoticon"]={}
-  emoji_dictionary.each { |emotion, emojis| resorted_dictionary["get_meaning"][emojis[1]] = emotion }
-  emoji_dictionary.each_value { |emojis| resorted_dictionary["get_emoticon"][emojis[0]] = emojis[1] }
-  resorted_dictionary
+def load_library(file)
+  emojis = YAML.load_file(file)
+  dictionary = {}
+  emojis.each do |meaning, pic_array|
+    filler = {:english => pic_array[0], :japanese => pic_array[1]}
+    dictionary[meaning] = filler
+  end
+  dictionary
 end
 
-def get_japanese_emoticon(filepath, english_emoji)
-  emoji_dictionary = load_library(filepath)
-  found = emoji_dictionary["get_emoticon"][english_emoji]
-  found ? found : "Sorry, that emoticon was not found"
-end
+def get_japanese_emoticon(file, eng_emoji)
+  dictionary =load_library(file)
+  entry = dictionary.select {|meanings, emoji_hash| emoji_hash[:english] == eng_emoji}
+  jap_emoji = nil
+  entry.each do |meanings, emoji_hash|
+    if entry[meanings][:japanese]
+      jap_emoji = entry[meanings][:japanese]
+    end 
+  end 
+  if jap_emoji == nil
+    jap_emoji = "Sorry, that emoticon was not found"
+  end 
+  jap_emoji
+end 
+  
 
-def get_english_meaning(filepath, japanese_emoji)
-  emoji_dictionary = load_library(filepath)
-  found = emoji_dictionary["get_meaning"][japanese_emoji]
-  found ? found : "Sorry, that emoticon was not found"
+def get_english_meaning (file, jap_emoji)
+  dictionary = load_library(file)
+  entry = dictionary.select {|meanings, emoji_hash| emoji_hash[:japanese] == jap_emoji}
+  if entry.keys[0]
+    eng_meaning = entry.keys[0]
+  else
+    eng_meaning = "Sorry, that emoticon was not found"
+  end 
+  eng_meaning
 end
